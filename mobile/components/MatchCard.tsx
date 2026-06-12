@@ -3,7 +3,6 @@ import { Animated, StyleSheet, View } from 'react-native';
 
 import { Text } from '@/components/Themed';
 import { useTheme } from '@/constants/theme';
-import { formatScore } from '@/lib/matches';
 import { ResolvedMatch } from '@/types';
 
 interface MatchCardProps {
@@ -20,6 +19,18 @@ export default function MatchCard({ match, playerId, showPoints = true }: MatchC
   const result = match.result;
   const status = result?.status ?? 'scheduled';
   const isLive = status === 'live';
+  const isFinished = status === 'finished';
+  const hasScore = match.team1Score !== null && match.team2Score !== null;
+
+  // Outcome of the player's prediction, only meaningful once the game is played.
+  const outcome: 'exact' | 'winner' | 'miss' | null =
+    points && (isFinished || isLive)
+      ? points.exact > 0
+        ? 'exact'
+        : points.winner > 0
+          ? 'winner'
+          : 'miss'
+      : null;
 
   useEffect(() => {
     if (!isLive) return;
@@ -38,6 +49,15 @@ export default function MatchCard({ match, playerId, showPoints = true }: MatchC
 
   const statusEmoji = status === 'live' ? '🔴' : status === 'finished' ? '✅' : '⏳';
 
+  const outcomeColor =
+    outcome === 'exact'
+      ? theme.brandGreen
+      : outcome === 'winner'
+        ? theme.brandGold
+        : outcome === 'miss'
+          ? theme.muted
+          : theme.brandCoral;
+
   return (
     <View
       style={[
@@ -48,7 +68,12 @@ export default function MatchCard({ match, playerId, showPoints = true }: MatchC
           borderWidth: isLive ? 2 : 1.5,
         },
       ]}>
-      <View style={[styles.stageStripe, { backgroundColor: theme.brandGreen }]} />
+      <View
+        style={[
+          styles.stageStripe,
+          { backgroundColor: outcome ? outcomeColor : theme.brandGreen },
+        ]}
+      />
 
       <View style={styles.inner}>
         <View style={styles.topRow}>
@@ -79,27 +104,49 @@ export default function MatchCard({ match, playerId, showPoints = true }: MatchC
           </View>
 
           <View style={[styles.scoreBox, { backgroundColor: theme.brandNavy }]}>
-            <Text style={styles.score}>
-              {result?.score ? formatScore(result.score).split('-')[0] : '—'}
-            </Text>
+            <Text style={styles.score}>{hasScore ? match.team1Score : '—'}</Text>
             <Text style={styles.scoreDivider}>:</Text>
-            <Text style={styles.score}>
-              {result?.score ? formatScore(result.score).split('-')[1] : '—'}
-            </Text>
+            <Text style={styles.score}>{hasScore ? match.team2Score : '—'}</Text>
           </View>
 
           {prediction ? (
-            <View style={[styles.predictionCol, { backgroundColor: theme.pointsBg }]}>
+            <View
+              style={[
+                styles.predictionCol,
+                {
+                  backgroundColor: outcome ? `${outcomeColor}22` : theme.pointsBg,
+                  borderColor: outcome ? outcomeColor : 'transparent',
+                },
+              ]}>
               <Text style={[styles.predictionLabel, { color: theme.muted }]}>🔮 Прогноз</Text>
-              <Text style={[styles.prediction, { color: theme.brandCoral }]}>{prediction}</Text>
+              <Text style={[styles.prediction, { color: outcome ? outcomeColor : theme.brandCoral }]}>
+                {prediction}
+              </Text>
             </View>
           ) : null}
         </View>
 
-        {showPoints && points && points.total > 0 ? (
-          <View style={[styles.pointsBar, { backgroundColor: theme.highlightBg }]}>
-            <Text style={[styles.pointsText, { color: theme.brandGreen }]}>
-              🎉 +{points.total} очков · {points.exact} точный · {points.winner} победитель
+        {showPoints && prediction && outcome ? (
+          <View
+            style={[
+              styles.pointsBar,
+              {
+                backgroundColor:
+                  outcome === 'miss' ? `${theme.muted}1A` : `${outcomeColor}22`,
+              },
+            ]}>
+            <Text style={[styles.pointsText, { color: outcome === 'miss' ? theme.muted : outcomeColor }]}>
+              {outcome === 'exact'
+                ? `🎯 Точный счёт! +${points!.total} очков (${points!.exact} счёт${
+                    points!.winner ? ` · ${points!.winner} победитель` : ''
+                  })`
+                : outcome === 'winner'
+                  ? `✅ Угадан победитель · +${points!.winner} очк${
+                      isLive ? ' (пока)' : 'а'
+                    }`
+                  : isLive
+                    ? '⏳ Пока мимо'
+                    : '❌ Без очков'}
             </Text>
           </View>
         ) : null}
@@ -200,6 +247,7 @@ const styles = StyleSheet.create({
   predictionCol: {
     alignItems: 'center',
     borderRadius: 12,
+    borderWidth: 1.5,
     paddingHorizontal: 10,
     paddingVertical: 8,
     minWidth: 72,

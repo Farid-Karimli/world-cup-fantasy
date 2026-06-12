@@ -58,5 +58,8 @@ export interface PlayerScore {
 
 export interface ResolvedMatch extends FantasyMatch {
   result: LiveResult | null;
+  /** Actual scores oriented to team1/team2 order (null until played). */
+  team1Score: number | null;
+  team2Score: number | null;
   pointsByPlayer: Record<string, MatchPoints>;
 }

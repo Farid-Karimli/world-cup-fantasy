@@ -8,7 +8,7 @@ import {
   ScoringRules,
   SubmissionsData,
 } from '@/types';
-import { sameFixture } from '@/lib/teams';
+import { fixtureOrientation, sameFixture } from '@/lib/teams';
 
 export function parseScore(raw: string): ParsedScore | null {
   const match = raw.trim().match(/^(\d+)\s*[-:]\s*(\d+)$/);
@@ -69,11 +69,18 @@ export function resolveMatchPoints(
     return points;
   }
 
-  const homeFirst = sameFixture(match.team1, match.team2, result.team1, result.team2);
-  const awayFirst = sameFixture(match.team1, match.team2, result.team2, result.team1);
-  if (!homeFirst && !awayFirst) {
+  const orientation = fixtureOrientation(
+    match.team1,
+    match.team2,
+    result.team1,
+    result.team2,
+  );
+  if (!orientation) {
     return points;
   }
+
+  // When 'direct', prediction's first number maps to the result's home score.
+  const predictionIsHomeFirst = orientation === 'direct';
 
   for (const [playerId, prediction] of Object.entries(match.predictions)) {
     points[playerId] = scorePrediction(
@@ -81,7 +88,7 @@ export function resolveMatchPoints(
       result.score,
       match.stage,
       rules,
-      homeFirst,
+      predictionIsHomeFirst,
     );
   }
 

@@ -1,7 +1,12 @@
 import { LiveResult } from '@/types';
 
+// World Cup 2026 runs Jun 11 – Jul 19. The scoreboard endpoint only returns
+// the current day's fixtures unless an explicit date range is supplied, so we
+// always request the full tournament window.
+const TOURNAMENT_START = '20260611';
+const TOURNAMENT_END = '20260719';
 const ESPN_SCOREBOARD =
-  'https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard';
+  `https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard?dates=${TOURNAMENT_START}-${TOURNAMENT_END}`;
 
 interface EspnCompetitor {
   homeAway: 'home' | 'away';
@@ -53,14 +58,18 @@ export async function fetchEspnResults(): Promise<LiveResult[]> {
 
     const homeScore = Number(home.score);
     const awayScore = Number(away.score);
-    const hasScore = !Number.isNaN(homeScore) && !Number.isNaN(awayScore);
     const state = competition.status.type.state;
+    const status = mapStatus(state);
+    // Scheduled games come back as 0-0; only trust a score once the match is
+    // live or finished.
+    const hasScore =
+      status !== 'scheduled' && !Number.isNaN(homeScore) && !Number.isNaN(awayScore);
 
     results.push({
       team1: home.team.displayName,
       team2: away.team.displayName,
       score: hasScore ? { home: homeScore, away: awayScore } : null,
-      status: mapStatus(state),
+      status,
       statusLabel:
         competition.status.type.shortDetail ??
         competition.status.type.description ??

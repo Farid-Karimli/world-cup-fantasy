@@ -16,6 +16,7 @@ const ALIASES: Record<string, string[]> = {
   'south korea': ['korea republic', 'korea'],
   'usa': ['united states', 'us'],
   'netherlands': ['holland'],
+  'turkey': ['turkiye'],
 };
 
 export function normalizeTeamName(name: string): string {
@@ -44,8 +45,23 @@ export function sameFixture(
   teamC: string,
   teamD: string,
 ): boolean {
-  return (
-    (teamsMatch(teamA, teamC) && teamsMatch(teamB, teamD)) ||
-    (teamsMatch(teamA, teamD) && teamsMatch(teamB, teamC))
-  );
+  return fixtureOrientation(teamA, teamB, teamC, teamD) !== null;
+}
+
+/**
+ * Determines how the prediction fixture (teamA vs teamB) lines up with the
+ * result fixture (teamC vs teamD).
+ *   'direct'  -> teamA === teamC and teamB === teamD
+ *   'flipped' -> teamA === teamD and teamB === teamC
+ *   null      -> not the same fixture
+ */
+export function fixtureOrientation(
+  teamA: string,
+  teamB: string,
+  teamC: string,
+  teamD: string,
+): 'direct' | 'flipped' | null {
+  if (teamsMatch(teamA, teamC) && teamsMatch(teamB, teamD)) return 'direct';
+  if (teamsMatch(teamA, teamD) && teamsMatch(teamB, teamC)) return 'flipped';
+  return null;
 }
