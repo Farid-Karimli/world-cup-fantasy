@@ -2,6 +2,8 @@ import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import LeaderboardRow from '@/components/LeaderboardRow';
+import ScoringRulesCard from '@/components/ScoringRulesCard';
+import ScreenHeader from '@/components/ScreenHeader';
 import { Text } from '@/components/Themed';
 import { useFantasy } from '@/context/FantasyContext';
 import { useSelectedPlayer } from '@/context/PlayerContext';
@@ -13,25 +15,24 @@ export default function LeaderboardScreen() {
   const { leaderboard, loading, error, lastUpdated, refresh } = useFantasy();
   const { selectedPlayerId } = useSelectedPlayer();
 
+  const subtitle = lastUpdated
+    ? `Обновлено ${lastUpdated.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })} · тяни вниз ↓`
+    : 'Загрузка результатов FIFA...';
+
   return (
     <ScrollView
       style={[sharedStyles.screen, { backgroundColor: theme.background }]}
-      contentContainerStyle={[styles.content, { paddingTop: insets.top + 8, paddingBottom: insets.bottom + 24 }]}
-      refreshControl={<RefreshControl refreshing={loading} onRefresh={refresh} tintColor={theme.tint} />}>
-      <View style={sharedStyles.header}>
-        <Text style={[sharedStyles.title, { color: theme.text }]}>Таблица лидеров</Text>
-        <Text style={[sharedStyles.subtitle, { color: theme.muted }]}>
-          {lastUpdated
-            ? `Обновлено ${lastUpdated.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}`
-            : 'Загрузка результатов FIFA...'}
-        </Text>
-      </View>
+      contentContainerStyle={[styles.content, { paddingTop: insets.top, paddingBottom: insets.bottom + 24 }]}
+      refreshControl={<RefreshControl refreshing={loading} onRefresh={refresh} tintColor={theme.brandGold} />}>
+      <ScreenHeader title="Таблица лидеров" subtitle={subtitle} emoji="🏆" />
 
       {error ? (
         <View style={[styles.errorBox, { backgroundColor: '#FEE2E2', borderColor: theme.danger }]}>
-          <Text style={{ color: theme.danger }}>{error}</Text>
+          <Text style={{ color: theme.danger }}>😬 {error}</Text>
         </View>
       ) : null}
+
+      <ScoringRulesCard />
 
       <View style={styles.list}>
         {leaderboard.map((entry, index) => (
@@ -50,14 +51,14 @@ export default function LeaderboardScreen() {
 const styles = StyleSheet.create({
   content: {
     paddingHorizontal: 20,
-    gap: 16,
+    gap: 14,
   },
   list: {
     gap: 10,
   },
   errorBox: {
-    borderWidth: 1,
-    borderRadius: 12,
+    borderWidth: 2,
+    borderRadius: 16,
     padding: 12,
   },
 });

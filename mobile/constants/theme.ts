@@ -19,16 +19,17 @@ export const sharedStyles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
-    fontWeight: '800',
-    letterSpacing: -0.5,
+    fontWeight: '900',
+    letterSpacing: -0.8,
   },
   subtitle: {
-    marginTop: 4,
+    marginTop: 6,
     fontSize: 14,
+    lineHeight: 20,
   },
   card: {
-    borderRadius: 16,
-    borderWidth: 1,
+    borderRadius: 20,
+    borderWidth: 1.5,
     padding: 16,
   },
   badge: {
@@ -38,6 +39,12 @@ export const sharedStyles = StyleSheet.create({
   },
   badgeText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '800',
   },
 });
+
+export const RANK_MEDALS: Record<number, string> = {
+  1: '🥇',
+  2: '🥈',
+  3: '🥉',
+};

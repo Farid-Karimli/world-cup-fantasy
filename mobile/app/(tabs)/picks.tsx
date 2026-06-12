@@ -3,6 +3,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import MatchCard from '@/components/MatchCard';
 import PlayerPicker from '@/components/PlayerPicker';
+import ScreenHeader from '@/components/ScreenHeader';
 import { Text } from '@/components/Themed';
 import { useFantasy } from '@/context/FantasyContext';
 import { useSelectedPlayer } from '@/context/PlayerContext';
@@ -31,14 +32,13 @@ export default function PicksScreen() {
   return (
     <ScrollView
       style={[sharedStyles.screen, { backgroundColor: theme.background }]}
-      contentContainerStyle={[styles.content, { paddingTop: insets.top + 8, paddingBottom: insets.bottom + 24 }]}
-      refreshControl={<RefreshControl refreshing={loading} onRefresh={refresh} tintColor={theme.tint} />}>
-      <View style={sharedStyles.header}>
-        <Text style={[sharedStyles.title, { color: theme.text }]}>Мои прогнозы</Text>
-        <Text style={[sharedStyles.subtitle, { color: theme.muted }]}>
-          Сравнение ваших счетов с результатами FIFA
-        </Text>
-      </View>
+      contentContainerStyle={[styles.content, { paddingTop: insets.top, paddingBottom: insets.bottom + 24 }]}
+      refreshControl={<RefreshControl refreshing={loading} onRefresh={refresh} tintColor={theme.brandGold} />}>
+      <ScreenHeader
+        title="Мои прогнозы"
+        subtitle="Угадай счёт — заработай очки!"
+        emoji="🔮"
+      />
 
       {ready ? (
         <PlayerPicker
@@ -48,14 +48,18 @@ export default function PicksScreen() {
       ) : null}
 
       {player ? (
-        <View style={[styles.summary, { backgroundColor: theme.card, borderColor: theme.border }]}>
-          <View>
-            <Text style={[styles.summaryName, { color: theme.text }]}>{player.name}</Text>
-            <Text style={[styles.summaryMeta, { color: theme.muted }]}>
-              Удачных матчей: {finishedWithPoints}
+        <View style={[styles.summary, { backgroundColor: theme.brandNavy, borderColor: theme.brandGold }]}>
+          <View style={styles.summaryLeft}>
+            <Text style={styles.summaryLabel}>ТВОЙ СЧЁТ</Text>
+            <Text style={styles.summaryName}>{player.name}</Text>
+            <Text style={styles.summaryMeta}>
+              🎉 Удачных матчей: {finishedWithPoints}
             </Text>
           </View>
-          <Text style={[styles.summaryPoints, { color: theme.tint }]}>{totalPoints}</Text>
+          <View style={[styles.pointsCircle, { backgroundColor: theme.brandGold }]}>
+            <Text style={[styles.summaryPoints, { color: theme.brandNavy }]}>{totalPoints}</Text>
+            <Text style={[styles.pointsUnit, { color: theme.brandNavy }]}>очков</Text>
+          </View>
         </View>
       ) : null}
 
@@ -79,24 +83,52 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   summary: {
-    borderWidth: 1,
-    borderRadius: 16,
-    padding: 16,
+    borderWidth: 3,
+    borderRadius: 22,
+    padding: 18,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    transform: [{ rotate: '0.5deg' }],
+  },
+  summaryLeft: {
+    flex: 1,
+    gap: 4,
+  },
+  summaryLabel: {
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 1.5,
+    color: 'rgba(255,255,255,0.6)',
   },
   summaryName: {
     fontSize: 18,
-    fontWeight: '800',
+    fontWeight: '900',
+    color: '#FFFFFF',
   },
   summaryMeta: {
-    marginTop: 4,
-    fontSize: 13,
+    fontSize: 12,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.7)',
+    marginTop: 2,
+  },
+  pointsCircle: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    transform: [{ rotate: '-6deg' }],
   },
   summaryPoints: {
-    fontSize: 32,
+    fontSize: 28,
+    fontWeight: '900',
+    lineHeight: 30,
+  },
+  pointsUnit: {
+    fontSize: 9,
     fontWeight: '800',
+    textTransform: 'uppercase',
   },
   list: {
     gap: 10,
