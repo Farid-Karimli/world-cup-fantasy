@@ -83,21 +83,17 @@ def parse_match_name(name: str) -> tuple[str | None, str | None]:
 
 
 def extract_players(table) -> dict[int, str]:
+    """Player name table spans rows 75-83 in four columns: IDs 1-9, 10-18, 19-27, 28-35."""
     players: dict[int, str] = {}
     for row in range(75, 84):
-        if table.cell(row, 1).value:
+        if table.cell(row, 1).value and table.cell(row, 0).value:
             players[int(table.cell(row, 1).value)] = str(table.cell(row, 0).value)
-        if table.cell(row, 11).value:
-            pid = int(table.cell(row, 11).value)
-            players[pid] = str(table.cell(row, 13).value)
-        if table.cell(row, 19).value:
-            pid = int(table.cell(row, 19).value)
-            if table.cell(row, 21).value:
-                players[pid] = str(table.cell(row, 21).value)
-        if table.cell(row, 27).value:
-            pid = int(table.cell(row, 27).value)
-            if table.cell(row, 4).value:
-                players[pid] = str(table.cell(row, 4).value)
+        if table.cell(row, 11).value and table.cell(row, 4).value:
+            players[int(table.cell(row, 11).value)] = str(table.cell(row, 4).value)
+        if table.cell(row, 19).value and table.cell(row, 13).value:
+            players[int(table.cell(row, 19).value)] = str(table.cell(row, 13).value)
+        if table.cell(row, 27).value and table.cell(row, 21).value:
+            players[int(table.cell(row, 27).value)] = str(table.cell(row, 21).value)
     return players
 
 
