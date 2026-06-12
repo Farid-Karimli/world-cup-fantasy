@@ -2,3 +2,12 @@
 .venv/
 __pycache__/
 *.pyc
+
+# Local data (regenerate via scripts/extract_submissions.py)
+data/
+
+# Agent / editor config
+mobile/.claude/
+mobile/.vscode/
+mobile/AGENTS.md
+mobile/CLAUDE.md
