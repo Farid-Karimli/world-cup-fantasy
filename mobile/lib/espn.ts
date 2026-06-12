@@ -1,4 +1,4 @@
-import { LiveResult, ParsedScore } from '@/types';
+import { LiveResult } from '@/types';
 
 const ESPN_SCOREBOARD =
   'https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard';
@@ -26,12 +26,6 @@ interface EspnEvent {
 
 interface EspnResponse {
   events?: EspnEvent[];
-}
-
-function parseEspnScore(raw: string): ParsedScore | null {
-  const value = Number(raw);
-  if (Number.isNaN(value)) return null;
-  return { home: value, away: value };
 }
 
 function mapStatus(state: string): LiveResult['status'] {
