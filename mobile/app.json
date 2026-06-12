@@ -27,7 +27,13 @@
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/favicon.png",
+      "name": "World Cup Fantasy",
+      "shortName": "WC Fantasy",
+      "description": "ЧМ-2026: угадай счёт и следи за таблицей лидеров",
+      "themeColor": "#00205B",
+      "backgroundColor": "#FFF9ED",
+      "lang": "ru"
     },
     "plugins": [
       "expo-router",
