@@ -1,0 +1,7 @@
+# Vercel rebuilds the web bundle remotely, so only source is needed.
+node_modules
+dist
+.expo
+ios
+android
+*.log

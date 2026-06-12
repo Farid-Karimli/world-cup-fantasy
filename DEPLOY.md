@@ -31,6 +31,17 @@ Add bundle identifiers to `mobile/app.json` before your first build:
 }
 ```
 
+## Two targets, one codebase
+
+Everything is built from the `mobile/` directory. The command you run decides the platform:
+
+| Command (run from `mobile/`) | Builds | Config |
+|------------------------------|--------|--------|
+| `npx vercel` | Web version | `mobile/vercel.json` |
+| `eas build` | Native iOS / Android | `mobile/eas.json` |
+
+Platform-specific code is branched at runtime via `Platform.OS` (e.g. the web dropdown nav vs. native tab bar), so no separate projects are needed.
+
 ## Deployment options
 
 ### 1. Internal distribution (recommended for friends)
@@ -61,10 +72,42 @@ Requires store listings, screenshots, and a privacy policy.
 
 ```bash
 cd mobile
-npx expo export --platform web
+npm run export:web
 ```
 
-Deploy the `dist/` folder to Vercel, Netlify, or GitHub Pages. Friends open a URL in any browser.
+This generates a static site in `mobile/dist/` with routes for `/`, `/picks`, and `/matches`.
+
+#### Vercel (recommended)
+
+`mobile/vercel.json` handles everything — Vercel runs `npx expo export --platform web` and serves `dist/` with clean URLs. Just run:
+
+```bash
+cd mobile
+npx vercel          # preview deploy
+npx vercel --prod   # production deploy
+```
+
+No build settings to configure; the first run links the project. If connecting the GitHub repo via the dashboard instead, set **Root Directory** = `mobile`.
+
+#### Netlify
+
+```bash
+cd mobile
+npm run export:web
+npx netlify deploy --prod --dir=dist
+```
+
+Build settings: publish directory `dist`, build command `npm run export:web`.
+
+#### Local preview
+
+```bash
+cd mobile
+npm run export:web
+npx serve dist
+```
+
+Open the URL shown (usually http://localhost:3000).
 
 ## Updating data & code
 
