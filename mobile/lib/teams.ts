@@ -6,37 +6,44 @@ const NORMALIZE = (value: string) =>
     .replace(/[^a-z0-9]+/g, ' ')
     .trim();
 
+// Every spelling we might encounter (from the spreadsheet or ESPN) maps to one
+// stable canonical key. Matching is done on these keys with strict equality —
+// substring matching is intentionally avoided because short tokens like "us"
+// falsely match "Australia"/"Austria", conflating different fixtures.
 const ALIASES: Record<string, string[]> = {
-  'bosnia herzegovina': ['bosnia', 'bos herz'],
+  'bosnia herzegovina': ['bosnia and herzegovina', 'bosnia'],
   'czech republic': ['czechia', 'czech'],
   'dr congo': ['congo dr', 'democratic republic of congo'],
   'ivory coast': ['cote d ivoire', 'cote divoire'],
   'cape verde': ['cabo verde'],
   'saudi arabia': ['ksa'],
-  'south korea': ['korea republic', 'korea'],
-  'usa': ['united states', 'us'],
+  'south korea': ['korea republic', 'korea south'],
+  'north korea': ['korea dpr'],
+  'usa': ['united states', 'united states of america'],
   'netherlands': ['holland'],
   'turkey': ['turkiye'],
+  'iran': ['ir iran'],
 };
+
+const CANONICAL_BY_NAME = new Map<string, string>();
+for (const [canonical, aliases] of Object.entries(ALIASES)) {
+  CANONICAL_BY_NAME.set(NORMALIZE(canonical), canonical);
+  for (const alias of aliases) {
+    CANONICAL_BY_NAME.set(NORMALIZE(alias), canonical);
+  }
+}
 
 export function normalizeTeamName(name: string): string {
   return NORMALIZE(name);
 }
 
+function canonicalTeam(name: string): string {
+  const normalized = NORMALIZE(name);
+  return CANONICAL_BY_NAME.get(normalized) ?? normalized;
+}
+
 export function teamsMatch(a: string, b: string): boolean {
-  const left = normalizeTeamName(a);
-  const right = normalizeTeamName(b);
-  if (left === right) return true;
-  if (left.includes(right) || right.includes(left)) return true;
-
-  for (const [canonical, aliases] of Object.entries(ALIASES)) {
-    const bucket = [canonical, ...aliases];
-    const leftHit = bucket.some((item) => left.includes(item) || item.includes(left));
-    const rightHit = bucket.some((item) => right.includes(item) || item.includes(right));
-    if (leftHit && rightHit) return true;
-  }
-
-  return false;
+  return canonicalTeam(a) === canonicalTeam(b);
 }
 
 export function sameFixture(
