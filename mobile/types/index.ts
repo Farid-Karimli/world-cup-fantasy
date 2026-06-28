@@ -32,10 +32,20 @@ export interface ParsedScore {
   away: number;
 }
 
+/** Regulation + extra time, optional penalties, and the fantasy full-game total. */
+export interface ScoreBreakdown {
+  regulation: ParsedScore;
+  penalties: ParsedScore | null;
+  fullGame: ParsedScore;
+}
+
 export interface LiveResult {
   team1: string;
   team2: string;
+  /** Regulation/extra-time score from ESPN (home/away order). */
   score: ParsedScore | null;
+  /** Full-game breakdown when extra time or penalties apply. */
+  scoreBreakdown: ScoreBreakdown | null;
   status: 'scheduled' | 'live' | 'finished';
   statusLabel: string;
 }
@@ -58,8 +68,12 @@ export interface PlayerScore {
 
 export interface ResolvedMatch extends FantasyMatch {
   result: LiveResult | null;
-  /** Actual scores oriented to team1/team2 order (null until played). */
+  /** Scores oriented to team1/team2 order (null until played). */
   team1Score: number | null;
   team2Score: number | null;
+  /** Full-game scores for knockout display/scoring (null for group stage). */
+  team1FullScore: number | null;
+  team2FullScore: number | null;
+  scoreBreakdown: ScoreBreakdown | null;
   pointsByPlayer: Record<string, MatchPoints>;
 }

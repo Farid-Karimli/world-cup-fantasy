@@ -48,12 +48,13 @@ export default function ScoringRulesCard() {
       <RuleRow
         points={`+${rules.knockoutExact}`}
         label="Точный счёт — плей-офф"
-        detail="1/8, 1/4, 1/2 и матч за 3-е место"
+        detail="1/8, 1/4, 1/2 и матч за 3-е место. Счёт — на весь матч: основное время, доп. время и пенальти (например, 2-2 + 5-4 пен. = 7-6)."
         accent={theme.brandSky}
       />
       <RuleRow
         points={`+${rules.finalExact}`}
         label="Точный счёт — финал"
+        detail="Счёт — на весь матч: основное время, доп. время и пенальти."
         accent={theme.brandGold}
       />
 
@@ -61,8 +62,8 @@ export default function ScoringRulesCard() {
 
       <RuleRow
         points={`+${rules.winner}`}
-        label="Верный победитель"
-        detail="За любой матч, даже если счёт не угадан. Суммируется с точным счётом."
+        label="Верный исход"
+        detail="Победа нужной команды или ничья в группе, если точный счёт не угадан. В плей-офф учитывается итог всего матча, включая пенальти. Не суммируется с очками за счёт."
         accent={theme.brandCoral}
       />
     </View>

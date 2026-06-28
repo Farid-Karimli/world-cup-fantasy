@@ -9,6 +9,7 @@ import {
   SubmissionsData,
 } from '@/types';
 import { fixtureOrientation, sameFixture } from '@/lib/teams';
+import { isKnockoutStage } from '@/lib/stages';
 
 export function parseScore(raw: string): ParsedScore | null {
   const match = raw.trim().match(/^(\d+)\s*[-:]\s*(\d+)$/);
@@ -26,6 +27,18 @@ function exactPointsForStage(stage: MatchStage, rules: ScoringRules): number {
   if (stage === 'final') return rules.finalExact;
   if (stage === 'group') return rules.groupExact;
   return rules.knockoutExact;
+}
+
+/** Score used for fantasy points — full game in knockout, regulation in groups. */
+export function scoringScoreForMatch(
+  result: LiveResult,
+  stage: MatchStage,
+): ParsedScore | null {
+  if (!result.score) return null;
+  if (isKnockoutStage(stage)) {
+    return result.scoreBreakdown?.fullGame ?? result.score;
+  }
+  return result.score;
 }
 
 export function scorePrediction(
@@ -51,8 +64,10 @@ export function scorePrediction(
     exact = exactPointsForStage(stage, rules);
   }
 
+  // Exact score and correct outcome do not stack — a player earns the exact
+  // bonus OR the outcome bonus for a match, whichever is higher.
   let winner = 0;
-  if (actualWinner === predictedWinner) {
+  if (exact === 0 && actualWinner === predictedWinner) {
     winner = rules.winner;
   }
 
@@ -65,15 +80,16 @@ export function resolveMatchPoints(
   rules: ScoringRules,
 ): Record<string, MatchPoints> {
   const points: Record<string, MatchPoints> = {};
-  if (!result?.score) {
+  const actual = result ? scoringScoreForMatch(result, match.stage) : null;
+  if (!actual) {
     return points;
   }
 
   const orientation = fixtureOrientation(
     match.team1,
     match.team2,
-    result.team1,
-    result.team2,
+    result!.team1,
+    result!.team2,
   );
   if (!orientation) {
     return points;
@@ -85,7 +101,7 @@ export function resolveMatchPoints(
   for (const [playerId, prediction] of Object.entries(match.predictions)) {
     points[playerId] = scorePrediction(
       prediction,
-      result.score,
+      actual,
       match.stage,
       rules,
       predictionIsHomeFirst,

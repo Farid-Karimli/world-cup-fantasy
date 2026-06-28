@@ -4,11 +4,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MatchCard from '@/components/MatchCard';
 import PlayerPicker from '@/components/PlayerPicker';
 import ScreenHeader from '@/components/ScreenHeader';
+import StageSectionHeader from '@/components/StageSectionHeader';
 import { Text } from '@/components/Themed';
 import { useFantasy } from '@/context/FantasyContext';
 import { useSelectedPlayer } from '@/context/PlayerContext';
 import { sharedStyles, useTheme } from '@/constants/theme';
 import { getSubmissions } from '@/lib/data';
+import { groupMatchesByStage } from '@/lib/matches';
 
 export default function PicksScreen() {
   const theme = useTheme();
@@ -16,6 +18,7 @@ export default function PicksScreen() {
   const { matches, loading, refresh } = useFantasy();
   const { selectedPlayerId, setSelectedPlayerId, ready } = useSelectedPlayer();
   const player = getSubmissions().players.find((item) => item.id === selectedPlayerId);
+  const sections = groupMatchesByStage(matches);
 
   const totalPoints = matches.reduce((sum, match) => {
     if (!selectedPlayerId) return sum;
@@ -64,13 +67,18 @@ export default function PicksScreen() {
       ) : null}
 
       <View style={styles.list}>
-        {matches.map((match) => (
-          <MatchCard
-            key={match.id}
-            match={match}
-            playerId={selectedPlayerId}
-            showPoints
-          />
+        {sections.map((section) => (
+          <View key={section.stage} style={styles.section}>
+            <StageSectionHeader stage={section.stage} matchCount={section.matches.length} />
+            {section.matches.map((match) => (
+              <MatchCard
+                key={match.id}
+                match={match}
+                playerId={selectedPlayerId}
+                showPoints
+              />
+            ))}
+          </View>
         ))}
       </View>
     </ScrollView>
@@ -131,6 +139,9 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   list: {
+    gap: 10,
+  },
+  section: {
     gap: 10,
   },
 });

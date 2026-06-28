@@ -3,6 +3,7 @@ import { Animated, StyleSheet, View } from 'react-native';
 
 import { Text } from '@/components/Themed';
 import { useTheme } from '@/constants/theme';
+import { isKnockoutStage, stageLabel } from '@/lib/stages';
 import { ResolvedMatch } from '@/types';
 
 interface MatchCardProps {
@@ -20,7 +21,12 @@ export default function MatchCard({ match, playerId, showPoints = true }: MatchC
   const status = result?.status ?? 'scheduled';
   const isLive = status === 'live';
   const isFinished = status === 'finished';
-  const hasScore = match.team1Score !== null && match.team2Score !== null;
+  const knockout = isKnockoutStage(match.stage);
+  const displayTeam1Score = knockout ? match.team1FullScore : match.team1Score;
+  const displayTeam2Score = knockout ? match.team2FullScore : match.team2Score;
+  const hasScore = displayTeam1Score !== null && displayTeam2Score !== null;
+  const breakdown = match.scoreBreakdown;
+  const hasPenalties = knockout && breakdown?.penalties;
 
   // Outcome of the player's prediction, only meaningful once the game is played.
   const outcome: 'exact' | 'winner' | 'miss' | null =
@@ -77,7 +83,18 @@ export default function MatchCard({ match, playerId, showPoints = true }: MatchC
 
       <View style={styles.inner}>
         <View style={styles.topRow}>
-          <Text style={[styles.matchName, { color: theme.text }]}>{match.nameRu}</Text>
+          <View style={styles.titleCol}>
+            <Text style={[styles.matchName, { color: theme.text }]}>{match.nameRu}</Text>
+            <View
+              style={[
+                styles.stageBadge,
+                { backgroundColor: knockout ? `${theme.brandSky}22` : `${theme.brandGreen}22` },
+              ]}>
+              <Text style={[styles.stageBadgeText, { color: knockout ? theme.brandSky : theme.brandGreen }]}>
+                {stageLabel(match.stage)}
+              </Text>
+            </View>
+          </View>
           <View style={[styles.statusBadge, { backgroundColor: `${statusTheme}22` }]}>
             {isLive ? (
               <Animated.View style={[styles.liveDot, { backgroundColor: theme.live, opacity: pulse }]} />
@@ -104,9 +121,9 @@ export default function MatchCard({ match, playerId, showPoints = true }: MatchC
           </View>
 
           <View style={[styles.scoreBox, { backgroundColor: theme.brandNavy }]}>
-            <Text style={styles.score}>{hasScore ? match.team1Score : '—'}</Text>
+            <Text style={styles.score}>{hasScore ? displayTeam1Score : '—'}</Text>
             <Text style={styles.scoreDivider}>:</Text>
-            <Text style={styles.score}>{hasScore ? match.team2Score : '—'}</Text>
+            <Text style={styles.score}>{hasScore ? displayTeam2Score : '—'}</Text>
           </View>
 
           {prediction ? (
@@ -126,6 +143,14 @@ export default function MatchCard({ match, playerId, showPoints = true }: MatchC
           ) : null}
         </View>
 
+        {hasPenalties && breakdown ? (
+          <Text style={[styles.breakdown, { color: theme.muted }]}>
+            {breakdown.regulation.home}-{breakdown.regulation.away} · пен. {breakdown.penalties!.home}-{breakdown.penalties!.away} · итого {breakdown.fullGame.home}-{breakdown.fullGame.away}
+          </Text>
+        ) : knockout && hasScore ? (
+          <Text style={[styles.breakdown, { color: theme.muted }]}>Итоговый счёт матча</Text>
+        ) : null}
+
         {showPoints && prediction && outcome ? (
           <View
             style={[
@@ -137,13 +162,9 @@ export default function MatchCard({ match, playerId, showPoints = true }: MatchC
             ]}>
             <Text style={[styles.pointsText, { color: outcome === 'miss' ? theme.muted : outcomeColor }]}>
               {outcome === 'exact'
-                ? `🎯 Точный счёт! +${points!.total} очков (${points!.exact} счёт${
-                    points!.winner ? ` · ${points!.winner} победитель` : ''
-                  })`
+                ? `🎯 Точный счёт! +${points!.total} очк${points!.total === 1 ? 'о' : 'ов'}`
                 : outcome === 'winner'
-                  ? `✅ Угадан победитель · +${points!.winner} очк${
-                      isLive ? ' (пока)' : 'а'
-                    }`
+                  ? `✅ Угадан исход · +${points!.winner} очк${isLive ? 'а (пока)' : 'а'}`
                   : isLive
                     ? '⏳ Пока мимо'
                     : '❌ Без очков'}
@@ -175,9 +196,22 @@ const styles = StyleSheet.create({
     gap: 8,
     alignItems: 'flex-start',
   },
-  matchName: {
+  titleCol: {
     flex: 1,
+    gap: 6,
+  },
+  matchName: {
     fontSize: 15,
+    fontWeight: '800',
+  },
+  stageBadge: {
+    alignSelf: 'flex-start',
+    borderRadius: 999,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  stageBadgeText: {
+    fontSize: 10,
     fontWeight: '800',
   },
   statusBadge: {
@@ -270,5 +304,10 @@ const styles = StyleSheet.create({
   pointsText: {
     fontSize: 12,
     fontWeight: '800',
+  },
+  breakdown: {
+    fontSize: 11,
+    fontWeight: '600',
+    lineHeight: 15,
   },
 });

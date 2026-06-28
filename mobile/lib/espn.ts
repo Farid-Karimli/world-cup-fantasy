@@ -1,4 +1,5 @@
 import { LiveResult } from '@/types';
+import { buildScoreBreakdown } from '@/lib/scoreBreakdown';
 
 // World Cup 2026 runs Jun 11 – Jul 19. The scoreboard endpoint only returns
 // the current day's fixtures unless an explicit date range is supplied, so we
@@ -8,25 +9,36 @@ const TOURNAMENT_END = '20260719';
 const ESPN_SCOREBOARD =
   `https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard?dates=${TOURNAMENT_START}-${TOURNAMENT_END}`;
 
+interface EspnDetail {
+  scoringPlay?: boolean;
+  shootout?: boolean;
+  scoreValue?: number;
+  team?: { id?: string };
+}
+
 interface EspnCompetitor {
   homeAway: 'home' | 'away';
   score: string;
   team: {
+    id: string;
     displayName: string;
   };
 }
 
-interface EspnEvent {
-  competitions: Array<{
-    competitors: EspnCompetitor[];
-    status: {
-      type: {
-        state: string;
-        description?: string;
-        shortDetail?: string;
-      };
+interface EspnCompetition {
+  competitors: EspnCompetitor[];
+  details?: EspnDetail[];
+  status: {
+    type: {
+      state: string;
+      description?: string;
+      shortDetail?: string;
     };
-  }>;
+  };
+}
+
+interface EspnEvent {
+  competitions: EspnCompetition[];
 }
 
 interface EspnResponse {
@@ -64,11 +76,15 @@ export async function fetchEspnResults(): Promise<LiveResult[]> {
     // live or finished.
     const hasScore =
       status !== 'scheduled' && !Number.isNaN(homeScore) && !Number.isNaN(awayScore);
+    const scoreBreakdown = hasScore
+      ? buildScoreBreakdown(competition.details, home, away)
+      : null;
 
     results.push({
       team1: home.team.displayName,
       team2: away.team.displayName,
       score: hasScore ? { home: homeScore, away: awayScore } : null,
+      scoreBreakdown,
       status,
       statusLabel:
         competition.status.type.shortDetail ??

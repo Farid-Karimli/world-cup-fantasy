@@ -3,16 +3,19 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import MatchCard from '@/components/MatchCard';
 import ScreenHeader from '@/components/ScreenHeader';
+import StageSectionHeader from '@/components/StageSectionHeader';
 import { Text } from '@/components/Themed';
 import { useFantasy } from '@/context/FantasyContext';
 import { useSelectedPlayer } from '@/context/PlayerContext';
 import { sharedStyles, useTheme } from '@/constants/theme';
+import { groupMatchesByStage } from '@/lib/matches';
 
 export default function MatchesScreen() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const { matches, loading, error, lastUpdated, refresh, results } = useFantasy();
   const { selectedPlayerId } = useSelectedPlayer();
+  const sections = groupMatchesByStage(matches);
 
   const liveCount = results.filter((item) => item.status === 'live').length;
   const finishedCount = results.filter((item) => item.status === 'finished').length;
@@ -49,13 +52,18 @@ export default function MatchesScreen() {
       ) : null}
 
       <View style={styles.list}>
-        {matches.map((match) => (
-          <MatchCard
-            key={match.id}
-            match={match}
-            playerId={selectedPlayerId}
-            showPoints
-          />
+        {sections.map((section) => (
+          <View key={section.stage} style={styles.section}>
+            <StageSectionHeader stage={section.stage} matchCount={section.matches.length} />
+            {section.matches.map((match) => (
+              <MatchCard
+                key={match.id}
+                match={match}
+                playerId={selectedPlayerId}
+                showPoints
+              />
+            ))}
+          </View>
         ))}
       </View>
     </ScrollView>
@@ -68,6 +76,9 @@ const styles = StyleSheet.create({
     gap: 14,
   },
   list: {
+    gap: 10,
+  },
+  section: {
     gap: 10,
   },
   liveBanner: {
