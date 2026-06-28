@@ -44,7 +44,7 @@ export default function LeaderboardRow({ entry, rank, highlighted }: Leaderboard
           {highlighted ? '  👈' : ''}
         </Text>
         <Text style={[styles.meta, { color: theme.muted }]}>
-          🎯 {entry.exactHits} точных · ✅ {entry.winnerHits} побед
+          🎯 {entry.exactHits} точных · ✅ {entry.winnerHits} исход.
         </Text>
       </View>
 
