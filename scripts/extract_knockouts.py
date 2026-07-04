@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Extract knockout-stage predictions from knockouts.xlsx into submissions.json."""
+"""Extract knockout-stage predictions from the 1/8-finals spreadsheet into submissions.json."""
 
 from __future__ import annotations
 
@@ -10,8 +10,9 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-KNOCKOUTS_FILE = Path("/Users/faridkarimli/Downloads/knockouts.xlsx")
-FALLBACK_KNOCKOUTS_FILE = ROOT / "knockouts.xlsx"
+KNOCKOUTS_FILE = Path("/Users/faridkarimli/Downloads/1-8 final (WC 2026).xlsx")
+FALLBACK_KNOCKOUTS_FILE = ROOT / "1-8 final (WC 2026).xlsx"
+LEGACY_KNOCKOUTS_FILE = ROOT / "knockouts.xlsx"
 OUTPUT_FILE = ROOT / "mobile" / "assets" / "submissions.json"
 GROUP_OUTPUT = OUTPUT_FILE
 
@@ -169,8 +170,15 @@ def extract_knockout_matches(rows: list[list[str | None]], stage: str = "round16
     return matches
 
 
+def resolve_source() -> Path:
+    for candidate in (KNOCKOUTS_FILE, FALLBACK_KNOCKOUTS_FILE, LEGACY_KNOCKOUTS_FILE):
+        if candidate.exists():
+            return candidate
+    return KNOCKOUTS_FILE
+
+
 def main() -> int:
-    source = KNOCKOUTS_FILE if KNOCKOUTS_FILE.exists() else FALLBACK_KNOCKOUTS_FILE
+    source = resolve_source()
     if not source.exists():
         print(f"Missing knockouts file: {KNOCKOUTS_FILE}", file=sys.stderr)
         return 1
@@ -195,7 +203,7 @@ def main() -> int:
 
     OUTPUT_FILE.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
     print(
-        f"Merged {len(knockout_matches)} knockout matches "
+        f"Loaded {source.name}: merged {len(knockout_matches)} knockout matches "
         f"with {len(group_matches)} group matches -> {OUTPUT_FILE}"
     )
     return 0
