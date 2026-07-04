@@ -2,6 +2,7 @@ import { MatchStage } from '@/types';
 
 export const STAGE_ORDER: MatchStage[] = [
   'group',
+  'round32',
   'round16',
   'quarter',
   'semi',
@@ -17,6 +18,8 @@ export function stageLabel(stage: MatchStage): string {
   switch (stage) {
     case 'group':
       return 'Групповой этап';
+    case 'round32':
+      return '1/16 финала';
     case 'round16':
       return '1/8 финала';
     case 'quarter':

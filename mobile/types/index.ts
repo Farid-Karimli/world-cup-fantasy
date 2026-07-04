@@ -1,4 +1,11 @@
-export type MatchStage = 'group' | 'round16' | 'quarter' | 'semi' | 'third' | 'final';
+export type MatchStage =
+  | 'group'
+  | 'round32'
+  | 'round16'
+  | 'quarter'
+  | 'semi'
+  | 'third'
+  | 'final';
 
 export interface Player {
   id: number;
