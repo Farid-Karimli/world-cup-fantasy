@@ -32,6 +32,11 @@ KNOCKOUT_ROUNDS = [
         "round16",
         200,
     ),
+    (
+        [DOWNLOADS / "1-4 final (WC 2026).xlsx", ROOT / "1-4 final (WC 2026).xlsx"],
+        "quarter",
+        300,
+    ),
 ]
 
 # Keep in sync with extract_submissions.py
