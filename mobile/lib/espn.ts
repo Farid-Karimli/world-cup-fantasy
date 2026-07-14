@@ -3,11 +3,14 @@ import { buildScoreBreakdown } from '@/lib/scoreBreakdown';
 
 // World Cup 2026 runs Jun 11 – Jul 19. The scoreboard endpoint only returns
 // the current day's fixtures unless an explicit date range is supplied, so we
-// always request the full tournament window.
+// always request the full tournament window. The endpoint also silently caps
+// results at 100 events without an explicit limit — the 104-match tournament
+// (72 group + 32 knockout) would otherwise be missing the latest fixtures.
 const TOURNAMENT_START = '20260611';
 const TOURNAMENT_END = '20260719';
+const EVENT_LIMIT = 200;
 const ESPN_SCOREBOARD =
-  `https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard?dates=${TOURNAMENT_START}-${TOURNAMENT_END}`;
+  `https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard?dates=${TOURNAMENT_START}-${TOURNAMENT_END}&limit=${EVENT_LIMIT}`;
 
 interface EspnDetail {
   scoringPlay?: boolean;

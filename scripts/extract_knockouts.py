@@ -37,6 +37,11 @@ KNOCKOUT_ROUNDS = [
         "quarter",
         300,
     ),
+    (
+        [DOWNLOADS / "1-2 final.xlsx", ROOT / "1-2 final.xlsx"],
+        "semi",
+        400,
+    ),
 ]
 
 # Keep in sync with extract_submissions.py
