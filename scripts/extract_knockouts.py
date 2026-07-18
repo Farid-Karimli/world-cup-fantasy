@@ -42,6 +42,14 @@ KNOCKOUT_ROUNDS = [
         "semi",
         400,
     ),
+    # Final.xlsx holds both remaining games: the semifinal losers play for
+    # third place, the semifinal winners play the final. Row order matches
+    # this stage list.
+    (
+        [DOWNLOADS / "Final.xlsx", ROOT / "Final.xlsx"],
+        ["third", "final"],
+        500,
+    ),
 ]
 
 # Keep in sync with extract_submissions.py
@@ -147,7 +155,7 @@ def read_xlsx_rows(path: Path) -> list[list[str | None]]:
 
 def extract_knockout_matches(
     rows: list[list[str | None]],
-    stage: str,
+    stage: str | list[str],
     start_id: int,
 ) -> list[dict]:
     if not rows:
@@ -186,13 +194,14 @@ def extract_knockout_matches(
             if score:
                 predictions[str(player_id)] = str(score).strip()
 
+        row_stage = stage[match_index] if isinstance(stage, list) else stage
         matches.append(
             {
                 "id": start_id + match_index,
                 "nameRu": match_name,
                 "team1": team1,
                 "team2": team2,
-                "stage": stage,
+                "stage": row_stage,
                 "predictions": predictions,
             }
         )
@@ -230,13 +239,14 @@ def main() -> int:
             print(f"No matches extracted for {stage} from {source.name}", file=sys.stderr)
             return 1
 
+        stage_label = "/".join(stage) if isinstance(stage, list) else stage
         unmapped = [m["nameRu"] for m in round_matches if not m["team1"] or not m["team2"]]
         if unmapped:
-            print(f"Unmapped {stage} matches:", unmapped, file=sys.stderr)
+            print(f"Unmapped {stage_label} matches:", unmapped, file=sys.stderr)
             return 1
 
         knockout_matches.extend(round_matches)
-        summary.append(f"{len(round_matches)} {stage} ({source.name})")
+        summary.append(f"{len(round_matches)} {stage_label} ({source.name})")
 
     if not knockout_matches:
         print("No knockout matches extracted", file=sys.stderr)
